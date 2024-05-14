@@ -1,6 +1,7 @@
 import { Model } from 'mongoose';
 import { Injectable, Inject } from '@nestjs/common';
-import { Country, CreateCountryDto } from './types';
+import { CreateCountryDto } from './types';
+import { Country } from '../database/schema.types';
 
 @Injectable()
 export class CountryService {
@@ -16,5 +17,9 @@ export class CountryService {
 
   async findAll(): Promise<Country[]> {
     return this.countryModel.find().exec();
+  }
+
+  async deleteById(_id: string): Promise<void> {
+    await this.countryModel.findByIdAndDelete(_id);
   }
 }
