@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Delete, Param } from '@nestjs/common';
 import { UserService } from './service';
-import { CreateUserDto, User } from './types';
+import { CreateUserDto, idArgDto } from './types';
+import { User } from 'src/database/schema.types';
 
 @Controller('user')
 export class UserController {
@@ -14,5 +15,10 @@ export class UserController {
   @Get()
   async findAll(): Promise<User[]> {
     return this.userService.findAll();
+  }
+
+  @Delete()
+  async deleteById(@Param() deleteSummaryDto: idArgDto): Promise<void> {
+    return this.userService.deleteById(deleteSummaryDto._id);
   }
 }
