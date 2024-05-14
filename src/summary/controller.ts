@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Body, Delete, Param } from '@nestjs/common';
 import { SummaryService } from './service';
-import { CreateSummaryDto, idArgDto } from './types';
+import { CreateSummaryDto, UserAndCountryDto, idArgDto } from './types';
 import { Summary } from '../database/schema.types';
 
-@Controller('Summary')
+@Controller('summary')
 export class SummaryController {
   constructor(private readonly summaryService: SummaryService) {}
 
@@ -18,8 +18,13 @@ export class SummaryController {
   }
 
   @Get()
-  async findByUser(@Param() findByIdDto: idArgDto): Promise<Summary> {
-    return this.summaryService.findByUser(findByIdDto._id);
+  async findByUserAndCountry(
+    @Param() findByUcDto: UserAndCountryDto,
+  ): Promise<Summary> {
+    return this.summaryService.findByUserAndCountry(
+      findByUcDto.user_id,
+      findByUcDto.country_id,
+    );
   }
 
   @Delete()

@@ -8,6 +8,10 @@ export class CreateSummaryDto {
   }[];
 }
 
+export class UserAndCountryDto {
+  readonly user_id: string;
+  readonly country_id: string;
+}
 export class idArgDto {
   readonly _id: string;
 }
