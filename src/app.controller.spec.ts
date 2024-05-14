@@ -2,6 +2,21 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { taxComp } from './utils/taxComputation';
+import { CountryController } from './country/controller';
+import { CountryService } from './country/service';
+import { SummaryController } from './summary/controller';
+import { SummaryService } from './summary/service';
+import { DeductionController } from './tax_deduction/controller';
+import { DeductionService } from './tax_deduction/service';
+import {
+  CountryProviders,
+  SummaryProviders,
+  UserProviders,
+  DeductionProviders,
+} from './database/database.models.providers';
+import { DatabaseModule } from './database/database.module';
+import { UserController } from './user/controller';
+import { UserService } from './user/service';
 
 const brackets = [
   {
@@ -38,14 +53,43 @@ const brackets = [
 
 describe('AppController', () => {
   let appController: AppController;
+  let countryController: CountryController;
+  let userController: UserController;
+  let summaryController: SummaryController;
+  let deductionController: DeductionController;
+  let countryId: string;
+  let userId: string;
+  let summaryId: string;
+  let deductionId: string;
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
-      controllers: [AppController],
-      providers: [AppService],
+      imports: [DatabaseModule],
+      controllers: [
+        AppController,
+        CountryController,
+        UserController,
+        SummaryController,
+        DeductionController,
+      ],
+      providers: [
+        AppService,
+        CountryService,
+        ...CountryProviders,
+        UserService,
+        ...UserProviders,
+        SummaryService,
+        ...SummaryProviders,
+        DeductionService,
+        ...DeductionProviders,
+      ],
     }).compile();
 
     appController = app.get<AppController>(AppController);
+    countryController = app.get<CountryController>(CountryController);
+    userController = app.get<UserController>(UserController);
+    summaryController = app.get<SummaryController>(SummaryController);
+    deductionController = app.get<DeductionController>(DeductionController);
   });
 
   describe('root', () => {
@@ -85,5 +129,67 @@ describe('AppController', () => {
       expect(testUpperLimit.newBandIndex).toBe(5);
       expect(testUpperLimit.currentBracket).toBe('a');
     });
+  });
+
+  describe('Country module test', () => {
+    it('Should create a country', async () => {
+      const newCountry = await countryController.create({
+        name: 'Test Country',
+        currency: 'Test currency',
+        tax_brackets: brackets,
+      });
+      countryId = newCountry.id;
+      expect(typeof countryId).toBe('string');
+      expect(newCountry.name).toBe('Test Country');
+      expect(newCountry.tax_brackets[0].bracket).toBe('f');
+    });
+  });
+
+  describe('User module test', () => {
+    it('Should create a user and the default summary document', async () => {
+      const newUser = await userController.create({
+        name: 'Test User',
+        email: 'Test User email',
+        country_id: countryId,
+        year: 2024,
+      });
+      userId = newUser._id;
+      const summary = await summaryController.findByUserAndCountry({
+        user_id: userId,
+        country_id: countryId,
+      });
+      summaryId = summary._id;
+      expect(newUser.name).toBe('Test User');
+      expect(newUser.email).toBe('Test User email');
+      expect(summary.total_taxed_income).toBe(0);
+    });
+  });
+
+  describe('Deduction module tests', () => {
+    it('Should create a deduction and update the corresponding summary document', async () => {
+      const newDeduction = await deductionController.create({
+        user_id: userId,
+        description: 'Test deduction',
+        income: 200000,
+        year: 2024,
+        country_id: countryId,
+      });
+      deductionId = newDeduction._id;
+      const summary = await summaryController.findByUserAndCountry({
+        user_id: userId,
+        country_id: countryId,
+      });
+      summaryId = summary._id;
+      expect(newDeduction.description).toBe('Test deduction');
+      expect(newDeduction.year).toBe(2024);
+      expect(summary.total_taxed_income).toBe(newDeduction.income);
+      expect(newDeduction.tax).toBeCloseTo(14000);
+    });
+  });
+  afterAll(async () => {
+    await countryController.deleteById({ _id: countryId });
+    await userController.deleteById({ _id: userId });
+    await summaryController.deleteById({ _id: summaryId });
+    await deductionController.deleteById({ _id: deductionId });
   });
 });
