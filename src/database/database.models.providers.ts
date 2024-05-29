@@ -33,6 +33,11 @@ export const CountryProviders = [CountryModel];
 
 export const DeductionProviders = [DeductionModel, SummaryModel, CountryModel];
 
-export const UserProviders = [UserModel, SummaryModel, DeductionModel];
+export const UserProviders = [
+  UserModel,
+  SummaryModel,
+  DeductionModel,
+  CountryModel,
+];
 
 export const SummaryProviders = [SummaryModel];
