@@ -21,15 +21,18 @@ export class DeductionService {
     const summary = await this.SummaryModel.findOne({
       user_id,
       country_id,
+      year,
     });
+    // console.log(summary, 'SUMMARYYY');
     const country = await this.CountryModel.findById(country_id);
+    // console.log(country, 'COUNTRYYYYY');
     const tax = await taxComp(
       income,
-      summary.total_taxed_income,
-      summary.current_tax_index,
+      summary?.total_taxed_income || 0,
+      summary?.current_tax_index || 0,
       country.tax_brackets,
     );
-    console.log(income, 'INCOMEEE IN SER IDEE');
+    // console.log(tax, 'INCOMEEE IN SER IDEE');
     const deduction = await this.DeductionModel.create({
       user_id,
       description,
@@ -38,17 +41,21 @@ export class DeductionService {
       tax: tax.newlyDeductedTax,
       year,
     });
-    console.log(deduction, 'DEDUCTION IN SERVICE FILEE');
+    // console.log(deduction, 'DEDUCTION IN SERVICE FILEE');
     await this.SummaryModel.findOneAndUpdate(
       {
         user_id,
         country_id,
+        year,
       },
       {
-        total_taxed_income: summary.total_taxed_income + income,
-        total_deducted_tax: summary.total_deducted_tax + tax.newlyDeductedTax,
+        total_taxed_income: (summary?.total_taxed_income || 0) + income,
+        total_deducted_tax:
+          (summary?.total_deducted_tax || 0) + tax.newlyDeductedTax,
         current_tax_index: tax.newBandIndex,
+        current_tax_bracket: tax.currentBracket,
       },
+      { upsert: true },
     );
     return deduction;
   }
