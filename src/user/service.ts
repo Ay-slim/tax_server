@@ -1,7 +1,7 @@
 import { Model, PipelineStage, Types } from 'mongoose';
 import { Injectable, Inject } from '@nestjs/common';
-import { CreateUserDto, UserDashboardDto } from './types';
-import { User, Summary, Deduction } from '../database/schema.types';
+import { CreateUserDto, LoginUserDto, UserDashboardDto } from './types';
+import { User, Summary, Deduction, Country } from '../database/schema.types';
 
 @Injectable()
 export class UserService {
@@ -12,23 +12,46 @@ export class UserService {
     private summaryModel: Model<Summary>,
     @Inject('DEDUCTION_MODEL')
     private deductionModel: Model<Deduction>,
+    @Inject('COUNTRY_MODEL')
+    private countryModel: Model<Country>,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const { name, email, country_id, year } = createUserDto;
-    const createdUser = await this.userModel.create({
-      name,
-      email,
-    });
-    await this.summaryModel.create({
-      user_id: createdUser._id,
-      year,
-      country_id,
-      total_taxed_income: 0,
-      total_deducted_tax: 0,
-      current_tax_index: 0,
-    });
-    return createdUser;
+    try {
+      const { name, email, country_id, year, password } = createUserDto;
+      const createdUser = await this.userModel.create({
+        name,
+        email,
+        password,
+      });
+      await this.summaryModel.create({
+        user_id: createdUser._id,
+        year,
+        country_id,
+        total_taxed_income: 0,
+        total_deducted_tax: 0,
+        current_tax_index: 0,
+      });
+      return createdUser;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async login(loginUserDto: LoginUserDto): Promise<{ user: User }> {
+    const { email, password } = loginUserDto;
+    const user = await this.userModel.findOne(
+      {
+        email,
+        password,
+      },
+      'name email _id',
+    );
+    return { user };
+  }
+
+  async fetchCountries(): Promise<Country[]> {
+    return this.countryModel.find({}, '_id, name');
   }
 
   async dashboard(dashboardDto: UserDashboardDto) {

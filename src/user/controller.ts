@@ -9,7 +9,12 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { UserService } from './service';
-import { CreateUserDto, UserDashboardDto, idArgDto } from './types';
+import {
+  CreateUserDto,
+  LoginUserDto,
+  UserDashboardDto,
+  idArgDto,
+} from './types';
 import { User } from 'src/database/schema.types';
 
 @Controller('user')
@@ -19,6 +24,16 @@ export class UserController {
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
+  }
+
+  @Post('login')
+  async login(@Body() loginUserDto: LoginUserDto) {
+    return this.userService.login(loginUserDto);
+  }
+
+  @Get('countries')
+  async fetch_countries() {
+    return this.userService.fetchCountries();
   }
 
   @Get()
