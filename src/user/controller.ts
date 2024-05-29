@@ -1,6 +1,15 @@
-import { Controller, Get, Post, Body, Delete, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Delete,
+  Param,
+  Req,
+} from '@nestjs/common';
+import { Request } from 'express';
 import { UserService } from './service';
-import { CreateUserDto, idArgDto } from './types';
+import { CreateUserDto, UserDashboardDto, idArgDto } from './types';
 import { User } from 'src/database/schema.types';
 
 @Controller('user')
@@ -15,6 +24,13 @@ export class UserController {
   @Get()
   async findAll(): Promise<User[]> {
     return this.userService.findAll();
+  }
+
+  @Get('dashboard')
+  async fetchDashboard(@Req() request: Request) {
+    const dashboardDto = JSON.parse(JSON.stringify(request.query));
+    //console.log(dashboardDto);
+    return this.userService.dashboard(dashboardDto as UserDashboardDto);
   }
 
   @Delete()
