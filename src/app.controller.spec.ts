@@ -151,6 +151,7 @@ describe('AppController', () => {
         email: 'Test User email',
         country_id: countryId,
         year: 2024,
+        password: 'test-password',
       });
       userId = newUser._id;
       const summary = await summaryController.findByUserAndCountry({
