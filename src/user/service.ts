@@ -47,6 +47,9 @@ export class UserService {
       },
       'name email _id',
     );
+    if (!user) {
+      throw new Error('Invalid password');
+    }
     return { user };
   }
 
@@ -78,6 +81,7 @@ export class UserService {
           country: {
             $ifNull: [{ $arrayElemAt: ['$country.name', 0] }, ''],
           },
+          country_id: 1,
           total_taxed_income: 1,
           total_deducted_tax: 1,
           current_tax_index: 1,
