@@ -4,6 +4,11 @@ export class CreateUserDto {
   readonly country_id: string;
   readonly year: number;
 }
+
+export class UserDashboardDto {
+  readonly user_id: string;
+  readonly year: number;
+}
 export class idArgDto {
   readonly _id: string;
 }
