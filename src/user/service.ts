@@ -1,7 +1,7 @@
-import { Model } from 'mongoose';
+import { Model, PipelineStage, Types } from 'mongoose';
 import { Injectable, Inject } from '@nestjs/common';
-import { CreateUserDto } from './types';
-import { User, Summary } from '../database/schema.types';
+import { CreateUserDto, UserDashboardDto } from './types';
+import { User, Summary, Deduction } from '../database/schema.types';
 
 @Injectable()
 export class UserService {
@@ -10,6 +10,8 @@ export class UserService {
     private userModel: Model<User>,
     @Inject('SUMMARY_MODEL')
     private summaryModel: Model<Summary>,
+    @Inject('DEDUCTION_MODEL')
+    private deductionModel: Model<Deduction>,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -27,6 +29,51 @@ export class UserService {
       current_tax_index: 0,
     });
     return createdUser;
+  }
+
+  async dashboard(dashboardDto: UserDashboardDto) {
+    const { user_id, year } = dashboardDto;
+    //const user = await this.userModel.findById(user_id);
+    const pipeline: PipelineStage[] = [
+      {
+        $match: {
+          user_id: new Types.ObjectId(user_id),
+          year: Number(year),
+        },
+      },
+      {
+        $lookup: {
+          from: 'countries',
+          as: 'country',
+          localField: 'country_id',
+          foreignField: '_id',
+        },
+      },
+      {
+        $project: {
+          user_id: 1,
+          country: {
+            $ifNull: [{ $arrayElemAt: ['$country.name', 0] }, ''],
+          },
+          total_taxed_income: 1,
+          total_deducted_tax: 1,
+          current_tax_index: 1,
+          current_tax_bracket: 1,
+        },
+      },
+    ];
+    const summary = await this.summaryModel.aggregate(pipeline);
+    const deductions = await this.deductionModel.find({
+      user_id,
+      year,
+    });
+    const years = await this.summaryModel.distinct('year');
+    // console.log(summary, deductions);
+    return {
+      summary: summary[0],
+      deductions,
+      years,
+    };
   }
 
   async findAll(): Promise<User[]> {
