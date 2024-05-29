@@ -105,7 +105,6 @@ describe('AppController', () => {
       expect(first200.newlyDeductedTax).toBeCloseTo(14000);
       expect(first200.newBandIndex).toBe(0);
       expect(first200.currentBracket).toBe('f');
-      // console.log(await taxComp(900000, 0, 0, brackets));
     });
 
     it('should calculate tax correctly for the next 1,000,000', async () => {
