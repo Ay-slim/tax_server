@@ -1,6 +1,15 @@
-import { Controller, Get, Post, Body, Delete, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Delete,
+  Param,
+  Req,
+} from '@nestjs/common';
 import { CountryService } from './service';
 import { CreateCountryDto, DeleteCountryDto } from './types';
+import { Request } from 'express';
 import { Country } from '../database/schema.types';
 
 @Controller('country')
@@ -15,6 +24,14 @@ export class CountryController {
   @Get()
   async findAll(): Promise<Country[]> {
     return this.countryService.findAll();
+  }
+
+  @Get('brackets')
+  async fetchTaxBrackets(@Req() request: Request): Promise<string[]> {
+    const fetchBracketsDto = JSON.parse(JSON.stringify(request.query));
+    return (await this.countryService.fetchBrackets(fetchBracketsDto._id)).map(
+      (brack) => brack?.bracket,
+    );
   }
 
   @Delete()

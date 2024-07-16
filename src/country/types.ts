@@ -11,3 +11,7 @@ export class CreateCountryDto {
 export class DeleteCountryDto {
   readonly _id: string;
 }
+
+export class FetchBracketsDto {
+  readonly _id: string;
+}

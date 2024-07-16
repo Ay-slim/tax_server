@@ -15,6 +15,15 @@ export class CountryService {
     return createdCountry.save();
   }
 
+  async findOne(_id: string): Promise<Country> {
+    return this.countryModel.findById(_id);
+  }
+
+  async fetchBrackets(_id: string): Promise<Country['tax_brackets']> {
+    const country = await this.countryModel.findById(_id, 'tax_brackets');
+    return country.tax_brackets;
+  }
+
   async findAll(): Promise<Country[]> {
     return this.countryModel.find().exec();
   }
