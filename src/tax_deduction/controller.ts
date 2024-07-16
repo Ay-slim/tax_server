@@ -21,4 +21,9 @@ export class DeductionController {
   async deleteById(@Param() deleteSummaryDto: idArgDto): Promise<void> {
     return this.deductionService.deleteById(deleteSummaryDto._id);
   }
+
+  @Delete('/many')
+  async deleteMany(@Param() deleteMultiDeductionDto: string[]): Promise<void> {
+    return this.deductionService.deleteMany(deleteMultiDeductionDto);
+  }
 }

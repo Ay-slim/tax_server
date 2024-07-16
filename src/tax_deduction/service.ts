@@ -1,4 +1,4 @@
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { Injectable, Inject } from '@nestjs/common';
 import { CreateDeductionDto } from './types';
 import { Country, Deduction, Summary } from '../database/schema.types';
@@ -16,8 +16,9 @@ export class DeductionService {
   ) {}
 
   async create(createDeductionDto: CreateDeductionDto): Promise<Deduction> {
-    const { user_id, description, income, year, country_id } =
+    const { user_id, description, income, date, country_id } =
       createDeductionDto;
+    const year = new Date(date).getFullYear();
     const summary = await this.SummaryModel.findOne({
       user_id,
       country_id,
@@ -32,14 +33,14 @@ export class DeductionService {
       summary?.current_tax_index || 0,
       country.tax_brackets,
     );
-    // console.log(tax, 'INCOMEEE IN SER IDEE');
+    console.log(date, 'INCOMEEE IN SER IDEE');
     const deduction = await this.DeductionModel.create({
       user_id,
       description,
       income,
       country_id,
       tax: tax.newlyDeductedTax,
-      year,
+      date: new Date(date),
     });
     // console.log(deduction, 'DEDUCTION IN SERVICE FILEE');
     await this.SummaryModel.findOneAndUpdate(
@@ -65,6 +66,14 @@ export class DeductionService {
   }
 
   async deleteById(_id: string): Promise<void> {
-    await this.SummaryModel.findByIdAndDelete(_id);
+    await this.DeductionModel.findByIdAndDelete(_id);
+  }
+
+  async deleteMany(ids: Array<string>): Promise<void> {
+    await this.DeductionModel.deleteMany({
+      _id: {
+        $in: ids.map((_id) => new mongoose.Types.ObjectId(_id)),
+      },
+    });
   }
 }
