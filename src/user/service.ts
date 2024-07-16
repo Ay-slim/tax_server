@@ -81,6 +81,9 @@ export class UserService {
           country: {
             $ifNull: [{ $arrayElemAt: ['$country.name', 0] }, ''],
           },
+          currency: {
+            $ifNull: [{ $arrayElemAt: ['$country.currency', 0] }, ''],
+          },
           country_id: 1,
           total_taxed_income: 1,
           total_deducted_tax: 1,
@@ -92,9 +95,13 @@ export class UserService {
     const summary = await this.summaryModel.aggregate(pipeline);
     const deductions = await this.deductionModel.find({
       user_id,
-      year,
+      $expr: {
+        $eq: [{ $year: '$date' }, Number(year)],
+      },
     });
-    const years = await this.summaryModel.distinct('year');
+    const years = await this.summaryModel.distinct('year', {
+      user_id,
+    });
     // console.log(summary, deductions);
     return {
       summary: summary[0],
