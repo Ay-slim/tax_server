@@ -2,7 +2,7 @@ export class CreateDeductionDto {
   readonly user_id: string;
   readonly description: string;
   readonly income: number;
-  readonly year: number;
+  readonly date: string;
   readonly country_id: string;
 }
 
