@@ -17,6 +17,7 @@ import {
 import { DatabaseModule } from './database/database.module';
 import { UserController } from './user/controller';
 import { UserService } from './user/service';
+import { Request } from 'express';
 
 const brackets = [
   {
@@ -59,8 +60,8 @@ describe('AppController', () => {
   let deductionController: DeductionController;
   let countryId: string;
   let userId: string;
-  let summaryId: string;
-  let deductionId: string;
+  let summaryIds: Array<string>;
+  const deductionIds: Array<string> = [];
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
@@ -154,42 +155,65 @@ describe('AppController', () => {
         password: 'test-password',
       });
       userId = newUser._id;
-      const summary = await summaryController.findByUserAndCountry({
+      const summaries = await summaryController.findByUserAndCountry({
         user_id: userId,
         country_id: countryId,
       });
-      summaryId = summary._id;
+      // summaryIds = summaries.map((summary) => summary._id);
       expect(newUser.name).toBe('Test User');
       expect(newUser.email).toBe('Test User email');
-      expect(summary.total_taxed_income).toBe(0);
+      expect(summaries[0]?.total_taxed_income).toBe(0);
     });
   });
 
   describe('Deduction module tests', () => {
     it('Should create a deduction and update the corresponding summary document', async () => {
-      const newDeduction = await deductionController.create({
+      const deduction24 = await deductionController.create({
         user_id: userId,
         description: 'Test deduction',
         income: 200000,
-        year: 2024,
+        date: '05-09-2024',
         country_id: countryId,
       });
-      deductionId = newDeduction._id;
-      const summary = await summaryController.findByUserAndCountry({
+      deductionIds.push(deduction24._id);
+
+      const deduction23 = await deductionController.create({
+        user_id: userId,
+        description: 'Test deduction 2',
+        income: 200000,
+        date: '05-09-2023',
+        country_id: countryId,
+      });
+      deductionIds.push(deduction23._id);
+      const summaries = await summaryController.findByUserAndCountry({
         user_id: userId,
         country_id: countryId,
       });
-      summaryId = summary._id;
-      expect(newDeduction.description).toBe('Test deduction');
-      expect(newDeduction.year).toBe(2024);
-      expect(summary.total_taxed_income).toBe(newDeduction.income);
-      expect(newDeduction.tax).toBeCloseTo(14000);
+      summaryIds = summaries.map((summary) => summary._id);
+      expect(deduction24.description).toBe('Test deduction');
+      expect(deduction24.date.getFullYear()).toBe(2024);
+      expect(summaries[0]?.total_taxed_income).toBe(deduction24.income);
+      expect(deduction24.tax).toBeCloseTo(14000);
+    });
+  });
+
+  describe('Dashboard test', () => {
+    it('Should fetch dashboard data and correctly filter deductions by year', async () => {
+      const dashboardData = await userController.fetchDashboard({
+        query: {
+          year: '2024',
+          user_id: userId,
+        },
+      } as unknown as Request);
+      // console.log(dashboardData, 'DASHBOARD DATAAAAAAA');
+      expect(dashboardData.deductions.length).toBe(1);
+      expect(dashboardData.years.length).toBe(2);
     });
   });
   afterAll(async () => {
     await countryController.deleteById({ _id: countryId });
     await userController.deleteById({ _id: userId });
-    await summaryController.deleteById({ _id: summaryId });
-    await deductionController.deleteById({ _id: deductionId });
+    await summaryController.deleteMany(summaryIds);
+    await deductionController.deleteMany(deductionIds);
   });
 });
