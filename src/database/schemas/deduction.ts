@@ -6,6 +6,7 @@ export const Deduction = new mongoose.Schema(
     description: String,
     income: Number,
     year: Number,
+    date: Date,
     country_id: mongoose.Types.ObjectId,
     tax: Number,
   },

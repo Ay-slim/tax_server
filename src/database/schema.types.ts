@@ -16,6 +16,7 @@ export interface Country extends Document {
 }
 
 export interface Deduction extends Document {
+  date: any;
   readonly user_id: string;
   readonly description: string;
   readonly income: number;
