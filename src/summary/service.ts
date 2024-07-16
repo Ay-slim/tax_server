@@ -1,4 +1,4 @@
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { Injectable, Inject } from '@nestjs/common';
 import { CreateSummaryDto } from './types';
 import { Summary } from '../database/schema.types';
@@ -19,11 +19,19 @@ export class SummaryService {
     return this.SummaryModel.find().exec();
   }
 
-  async findByUserAndCountry(user_id: string, country_id): Promise<Summary> {
-    return this.SummaryModel.findOne({ user_id, country_id });
+  async findByUserAndCountry(user_id: string, country_id): Promise<Summary[]> {
+    return this.SummaryModel.find({ user_id, country_id });
   }
 
   async deleteById(_id: string): Promise<void> {
     await this.SummaryModel.findByIdAndDelete(_id);
+  }
+
+  async deleteMany(ids: Array<string>): Promise<void> {
+    await this.SummaryModel.deleteMany({
+      _id: {
+        $in: ids.map((_id) => new mongoose.Types.ObjectId(_id)),
+      },
+    });
   }
 }
