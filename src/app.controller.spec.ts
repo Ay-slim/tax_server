@@ -153,6 +153,7 @@ describe('AppController', () => {
         country_id: countryId,
         year: 2024,
         password: 'test-password',
+        pension_contribution_percent: 8,
       });
       userId = newUser._id;
       const summaries = await summaryController.findByUserAndCountry({
@@ -163,6 +164,35 @@ describe('AppController', () => {
       expect(newUser.name).toBe('Test User');
       expect(newUser.email).toBe('Test User email');
       expect(summaries[0]?.total_taxed_income).toBe(0);
+      expect(summaries[0]?.pension_contribution_percent).toBe(8);
+    });
+    it('Should test a successful user login', async () => {
+      const loggedInUser = await userController.login({
+        email: 'Test User email',
+        password: 'test-password',
+      });
+      expect(loggedInUser.user.name).toBe('Test User');
+      expect(loggedInUser.user.email).toBe('Test User email');
+    });
+    it('Should throw for an invalid password', async () => {
+      try {
+        await userController.login({
+          email: 'Test User email',
+          password: 'test-passweeerd',
+        });
+      } catch (e) {
+        expect(e?.message).toBe('Invalid email or password');
+      }
+    });
+    it('Should throw for a non existent user', async () => {
+      try {
+        await userController.login({
+          email: 'Invalid email',
+          password: 'test-passweeerd',
+        });
+      } catch (e) {
+        expect(e?.message).toBe('Invalid email or password');
+      }
     });
   });
 
