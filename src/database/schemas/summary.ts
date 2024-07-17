@@ -9,6 +9,7 @@ export const Summary = new mongoose.Schema(
     total_deducted_tax: Number,
     current_tax_index: Number,
     current_tax_bracket: String,
+    pension_contribution_percent: Number,
   },
   { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } },
 );

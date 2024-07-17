@@ -3,6 +3,7 @@ import { Document } from 'mongoose';
 export interface User extends Document {
   readonly name: string;
   readonly email: string;
+  readonly password: string;
 }
 
 export interface Country extends Document {
@@ -32,4 +33,5 @@ export interface Summary extends Document {
   readonly total_taxed_income: number;
   readonly total_deducted_tax: number;
   readonly current_tax_index: number;
+  readonly pension_contribution_percent: number;
 }
