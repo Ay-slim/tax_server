@@ -4,6 +4,7 @@ export class CreateUserDto {
   readonly country_id: string;
   readonly password: string;
   readonly year: number;
+  readonly pension_contribution_percent: number;
 }
 
 export class UserDashboardDto {
