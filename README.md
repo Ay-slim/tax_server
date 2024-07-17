@@ -36,3 +36,8 @@ $ yarn run test
 
 - Develop a rule engine structure (preferably separate module + db schema, thinking about that is still sketchy atm) to map things like exemptions and reliefs to countries, if/else or switch statements for this can get messy real quick
 - Depending on how quickly this moves, set up an admin dashboard for creating rules etc, postman isn't likely to scale
+
+## Deployment
+
+Currently running on Render
+Cron running from https://console.cron-job.org/ keeps the server from sleeping
