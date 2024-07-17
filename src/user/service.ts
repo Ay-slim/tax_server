@@ -2,6 +2,7 @@ import { Model, PipelineStage, Types } from 'mongoose';
 import { Injectable, Inject } from '@nestjs/common';
 import { CreateUserDto, LoginUserDto, UserDashboardDto } from './types';
 import { User, Summary, Deduction, Country } from '../database/schema.types';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -18,11 +19,19 @@ export class UserService {
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
-      const { name, email, country_id, year, password } = createUserDto;
+      const {
+        name,
+        email,
+        country_id,
+        year,
+        password,
+        pension_contribution_percent,
+      } = createUserDto;
+      const hashed_password = await bcrypt.hash(password, 10);
       const createdUser = await this.userModel.create({
         name,
         email,
-        password,
+        password: hashed_password,
       });
       await this.summaryModel.create({
         user_id: createdUser._id,
@@ -31,6 +40,7 @@ export class UserService {
         total_taxed_income: 0,
         total_deducted_tax: 0,
         current_tax_index: 0,
+        pension_contribution_percent,
       });
       return createdUser;
     } catch (err) {
@@ -38,19 +48,31 @@ export class UserService {
     }
   }
 
-  async login(loginUserDto: LoginUserDto): Promise<{ user: User }> {
+  async login(
+    loginUserDto: LoginUserDto,
+  ): Promise<{ user: { name: string; email: string } }> {
     const { email, password } = loginUserDto;
     const user = await this.userModel.findOne(
       {
         email,
-        password,
       },
-      'name email _id',
+      'name email password _id',
     );
     if (!user) {
-      throw new Error('Invalid password');
+      console.log('User does not exist');
+      throw new Error('Invalid email or password');
     }
-    return { user };
+    const isValidPassword = await bcrypt.compare(password, user?.password);
+    if (!isValidPassword) {
+      console.log('Wrong password');
+      throw new Error('Invalid email or password');
+    }
+    return {
+      user: {
+        name: user?.name,
+        email: user?.email,
+      },
+    };
   }
 
   async fetchCountries(): Promise<Country[]> {
