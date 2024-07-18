@@ -18,6 +18,8 @@ import { DatabaseModule } from './database/database.module';
 import { UserController } from './user/controller';
 import { UserService } from './user/service';
 import { Request } from 'express';
+import { Types } from 'mongoose';
+import { ConfigModule } from '@nestjs/config';
 
 const brackets = [
   {
@@ -65,7 +67,7 @@ describe('AppController', () => {
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
-      imports: [DatabaseModule],
+      imports: [DatabaseModule, ConfigModule.forRoot()],
       controllers: [
         AppController,
         CountryController,
@@ -173,6 +175,7 @@ describe('AppController', () => {
       });
       expect(loggedInUser.user.name).toBe('Test User');
       expect(loggedInUser.user.email).toBe('Test User email');
+      expect(loggedInUser.user._id).toEqual(new Types.ObjectId(userId));
     });
     it('Should throw for an invalid password', async () => {
       try {
