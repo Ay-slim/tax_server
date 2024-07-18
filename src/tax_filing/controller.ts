@@ -1,19 +1,19 @@
 import { Controller, Get, Post, Body, Delete, Param } from '@nestjs/common';
-import { DeductionService } from './service';
-import { CreateDeductionDto, idArgDto } from './types';
-import { Deduction } from 'src/database/schema.types';
+import { FilingService } from './service';
+import { CreateFilingDto, idArgDto } from './types';
+import { Filing } from 'src/database/schema.types';
 
 @Controller('filing')
-export class DeductionController {
-  constructor(private readonly deductionService: DeductionService) {}
+export class FilingController {
+  constructor(private readonly deductionService: FilingService) {}
 
   @Post()
-  async create(@Body() createDeductionDto: CreateDeductionDto) {
+  async create(@Body() createDeductionDto: CreateFilingDto) {
     return this.deductionService.create(createDeductionDto);
   }
 
   @Get()
-  async findAll(): Promise<Deduction[]> {
+  async findAll(): Promise<Filing[]> {
     return this.deductionService.findAll();
   }
 

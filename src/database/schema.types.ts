@@ -16,7 +16,7 @@ export interface Country extends Document {
   }[];
 }
 
-export interface Deduction extends Document {
+export interface Filing extends Document {
   date: any;
   readonly user_id: string;
   readonly description: string;

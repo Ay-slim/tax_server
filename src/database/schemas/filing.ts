@@ -1,6 +1,6 @@
 import * as mongoose from 'mongoose';
 
-export const Deduction = new mongoose.Schema(
+export const Filing = new mongoose.Schema(
   {
     user_id: mongoose.Types.ObjectId,
     description: String,

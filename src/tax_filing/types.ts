@@ -1,4 +1,4 @@
-export class CreateDeductionDto {
+export class CreateFilingDto {
   readonly user_id: string;
   readonly description: string;
   readonly income: number;

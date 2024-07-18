@@ -2,7 +2,7 @@ import { Connection } from 'mongoose';
 import { Country } from './schemas/country';
 import { Summary } from './schemas/summary';
 import { User } from './schemas/user';
-import { Deduction } from './schemas/deduction';
+import { Filing } from './schemas/filing';
 
 const CountryModel = {
   provide: 'COUNTRY_MODEL',
@@ -10,10 +10,9 @@ const CountryModel = {
   inject: ['DATABASE_CONNECTION'],
 };
 
-const DeductionModel = {
-  provide: 'DEDUCTION_MODEL',
-  useFactory: (connection: Connection) =>
-    connection.model('Deduction', Deduction),
+const FilingModel = {
+  provide: 'FILING_MODEL',
+  useFactory: (connection: Connection) => connection.model('Filing', Filing),
   inject: ['DATABASE_CONNECTION'],
 };
 
@@ -31,12 +30,12 @@ const UserModel = {
 
 export const CountryProviders = [CountryModel];
 
-export const DeductionProviders = [DeductionModel, SummaryModel, CountryModel];
+export const FilingProviders = [FilingModel, SummaryModel, CountryModel];
 
 export const UserProviders = [
   UserModel,
   SummaryModel,
-  DeductionModel,
+  FilingModel,
   CountryModel,
 ];
 

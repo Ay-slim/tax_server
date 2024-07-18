@@ -1,23 +1,22 @@
 import mongoose, { Model } from 'mongoose';
 import { Injectable, Inject } from '@nestjs/common';
-import { CreateDeductionDto } from './types';
-import { Country, Deduction, Summary } from '../database/schema.types';
+import { CreateFilingDto } from './types';
+import { Country, Filing, Summary } from '../database/schema.types';
 import { taxComp } from '../utils/taxComputation';
 
 @Injectable()
-export class DeductionService {
+export class FilingService {
   constructor(
-    @Inject('DEDUCTION_MODEL')
-    private DeductionModel: Model<Deduction>,
+    @Inject('FILING_MODEL')
+    private FilingModel: Model<Filing>,
     @Inject('SUMMARY_MODEL')
     private SummaryModel: Model<Summary>,
     @Inject('COUNTRY_MODEL')
     private CountryModel: Model<Country>,
   ) {}
 
-  async create(createDeductionDto: CreateDeductionDto): Promise<Deduction> {
-    const { user_id, description, income, date, country_id } =
-      createDeductionDto;
+  async create(createFilingDto: CreateFilingDto): Promise<Filing> {
+    const { user_id, description, income, date, country_id } = createFilingDto;
     const year = new Date(date).getFullYear();
     const summary = await this.SummaryModel.findOne({
       user_id,
@@ -33,8 +32,8 @@ export class DeductionService {
       summary?.current_tax_index || 0,
       country.tax_brackets,
     );
-    console.log(date, 'INCOMEEE IN SER IDEE');
-    const deduction = await this.DeductionModel.create({
+    // console.log(date, 'INCOMEEE IN SER IDEE');
+    const filing = await this.FilingModel.create({
       user_id,
       description,
       income,
@@ -58,19 +57,19 @@ export class DeductionService {
       },
       { upsert: true },
     );
-    return deduction;
+    return filing;
   }
 
-  async findAll(): Promise<Deduction[]> {
-    return this.DeductionModel.find().exec();
+  async findAll(): Promise<Filing[]> {
+    return this.FilingModel.find().exec();
   }
 
   async deleteById(_id: string): Promise<void> {
-    await this.DeductionModel.findByIdAndDelete(_id);
+    await this.FilingModel.findByIdAndDelete(_id);
   }
 
   async deleteMany(ids: Array<string>): Promise<void> {
-    await this.DeductionModel.deleteMany({
+    await this.FilingModel.deleteMany({
       _id: {
         $in: ids.map((_id) => new mongoose.Types.ObjectId(_id)),
       },

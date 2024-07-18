@@ -6,13 +6,13 @@ import { CountryController } from './country/controller';
 import { CountryService } from './country/service';
 import { SummaryController } from './summary/controller';
 import { SummaryService } from './summary/service';
-import { DeductionController } from './tax_filing/controller';
-import { DeductionService } from './tax_filing/service';
+import { FilingController } from './tax_filing/controller';
+import { FilingService } from './tax_filing/service';
 import {
   CountryProviders,
   SummaryProviders,
   UserProviders,
-  DeductionProviders,
+  FilingProviders,
 } from './database/database.models.providers';
 import { DatabaseModule } from './database/database.module';
 import { UserController } from './user/controller';
@@ -59,7 +59,7 @@ describe('AppController', () => {
   let countryController: CountryController;
   let userController: UserController;
   let summaryController: SummaryController;
-  let deductionController: DeductionController;
+  let deductionController: FilingController;
   let countryId: string;
   let userId: string;
   let summaryIds: Array<string>;
@@ -73,7 +73,7 @@ describe('AppController', () => {
         CountryController,
         UserController,
         SummaryController,
-        DeductionController,
+        FilingController,
       ],
       providers: [
         AppService,
@@ -83,8 +83,8 @@ describe('AppController', () => {
         ...UserProviders,
         SummaryService,
         ...SummaryProviders,
-        DeductionService,
-        ...DeductionProviders,
+        FilingService,
+        ...FilingProviders,
       ],
     }).compile();
 
@@ -92,7 +92,7 @@ describe('AppController', () => {
     countryController = app.get<CountryController>(CountryController);
     userController = app.get<UserController>(UserController);
     summaryController = app.get<SummaryController>(SummaryController);
-    deductionController = app.get<DeductionController>(DeductionController);
+    deductionController = app.get<FilingController>(FilingController);
   });
 
   describe('root', () => {
@@ -151,7 +151,7 @@ describe('AppController', () => {
     it('Should create a user and the default summary document', async () => {
       const newUser = await userController.create({
         name: 'Test User',
-        email: 'Test User email',
+        email: 'test@user.com',
         country_id: countryId,
         year: 2024,
         password: 'test-password',
@@ -164,23 +164,23 @@ describe('AppController', () => {
       });
       // summaryIds = summaries.map((summary) => summary._id);
       expect(newUser.name).toBe('Test User');
-      expect(newUser.email).toBe('Test User email');
+      expect(newUser.email).toBe('test@user.com');
       expect(summaries[0]?.total_taxed_income).toBe(0);
       expect(summaries[0]?.pension_contribution_percent).toBe(8);
     });
     it('Should test a successful user login', async () => {
       const loggedInUser = await userController.login({
-        email: 'Test User email',
+        email: 'test@user.com',
         password: 'test-password',
       });
       expect(loggedInUser.user.name).toBe('Test User');
-      expect(loggedInUser.user.email).toBe('Test User email');
+      expect(loggedInUser.user.email).toBe('test@user.com');
       expect(loggedInUser.user._id).toEqual(new Types.ObjectId(userId));
     });
     it('Should throw for an invalid password', async () => {
       try {
         await userController.login({
-          email: 'Test User email',
+          email: 'test@user.com',
           password: 'test-passweeerd',
         });
       } catch (e) {
@@ -199,34 +199,34 @@ describe('AppController', () => {
     });
   });
 
-  describe('Deduction module tests', () => {
+  describe('Filing module tests', () => {
     it('Should create a deduction and update the corresponding summary document', async () => {
-      const deduction24 = await deductionController.create({
+      const filing24 = await deductionController.create({
         user_id: userId,
         description: 'Test deduction',
         income: 200000,
         date: '05-09-2024',
         country_id: countryId,
       });
-      deductionIds.push(deduction24._id);
+      deductionIds.push(filing24._id);
 
-      const deduction23 = await deductionController.create({
+      const filing23 = await deductionController.create({
         user_id: userId,
         description: 'Test deduction 2',
         income: 200000,
         date: '05-09-2023',
         country_id: countryId,
       });
-      deductionIds.push(deduction23._id);
+      deductionIds.push(filing23._id);
       const summaries = await summaryController.findByUserAndCountry({
         user_id: userId,
         country_id: countryId,
       });
       summaryIds = summaries.map((summary) => summary._id);
-      expect(deduction24.description).toBe('Test deduction');
-      expect(deduction24.date.getFullYear()).toBe(2024);
-      expect(summaries[0]?.total_taxed_income).toBe(deduction24.income);
-      expect(deduction24.tax).toBeCloseTo(14000);
+      expect(filing24.description).toBe('Test deduction');
+      expect(filing24.date.getFullYear()).toBe(2024);
+      expect(summaries[0]?.total_taxed_income).toBe(filing24.income);
+      expect(filing24.tax).toBeCloseTo(14000);
     });
   });
 
@@ -239,7 +239,7 @@ describe('AppController', () => {
         },
       } as unknown as Request);
       // console.log(dashboardData, 'DASHBOARD DATAAAAAAA');
-      expect(dashboardData.deductions.length).toBe(1);
+      expect(dashboardData.filings.length).toBe(1);
       expect(dashboardData.years.length).toBe(2);
     });
   });

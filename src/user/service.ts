@@ -1,7 +1,7 @@
 import { Model, PipelineStage, Types } from 'mongoose';
 import { Injectable, Inject } from '@nestjs/common';
 import { CreateUserDto, LoginUserDto, UserDashboardDto } from './types';
-import { User, Summary, Deduction, Country } from '../database/schema.types';
+import { User, Summary, Filing, Country } from '../database/schema.types';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -11,8 +11,8 @@ export class UserService {
     private userModel: Model<User>,
     @Inject('SUMMARY_MODEL')
     private summaryModel: Model<Summary>,
-    @Inject('DEDUCTION_MODEL')
-    private deductionModel: Model<Deduction>,
+    @Inject('FILING_MODEL')
+    private filingModel: Model<Filing>,
     @Inject('COUNTRY_MODEL')
     private countryModel: Model<Country>,
   ) {}
@@ -116,7 +116,7 @@ export class UserService {
       },
     ];
     const summary = await this.summaryModel.aggregate(pipeline);
-    const deductions = await this.deductionModel.find({
+    const filings = await this.filingModel.find({
       user_id,
       $expr: {
         $eq: [{ $year: '$date' }, Number(year)],
@@ -128,7 +128,7 @@ export class UserService {
     // console.log(summary, deductions);
     return {
       summary: summary[0],
-      deductions,
+      filings,
       years,
     };
   }
