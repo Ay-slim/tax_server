@@ -6,8 +6,8 @@ import { CountryController } from './country/controller';
 import { CountryService } from './country/service';
 import { SummaryController } from './summary/controller';
 import { SummaryService } from './summary/service';
-import { DeductionController } from './tax_deduction/controller';
-import { DeductionService } from './tax_deduction/service';
+import { DeductionController } from './tax_filing/controller';
+import { DeductionService } from './tax_filing/service';
 import {
   CountryProviders,
   SummaryProviders,

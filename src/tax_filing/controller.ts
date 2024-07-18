@@ -3,7 +3,7 @@ import { DeductionService } from './service';
 import { CreateDeductionDto, idArgDto } from './types';
 import { Deduction } from 'src/database/schema.types';
 
-@Controller('deduction')
+@Controller('filing')
 export class DeductionController {
   constructor(private readonly deductionService: DeductionService) {}
 
