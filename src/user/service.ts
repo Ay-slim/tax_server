@@ -50,7 +50,7 @@ export class UserService {
 
   async login(
     loginUserDto: LoginUserDto,
-  ): Promise<{ user: { name: string; email: string } }> {
+  ): Promise<{ user: { name: string; email: string; _id: string } }> {
     const { email, password } = loginUserDto;
     const user = await this.userModel.findOne(
       {
@@ -71,6 +71,7 @@ export class UserService {
       user: {
         name: user?.name,
         email: user?.email,
+        _id: user?._id,
       },
     };
   }
