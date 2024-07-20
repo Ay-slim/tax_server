@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { taxComp } from './utils/taxComputation';
+import { computeTax } from './utils/agnosticTaxComputation';
 import { CountryController } from './country/controller';
 import { CountryService } from './country/service';
 import { SummaryController } from './summary/controller';
@@ -107,6 +108,14 @@ describe('AppController', () => {
       expect(first200.grossTaxedIncome).toBe(200000);
       expect(first200.newlyDeductedTax).toBeCloseTo(14000);
       expect(first200.newBandIndex).toBe(0);
+      expect(first200.currentBracket).toBe('f');
+    });
+
+    it('should calculate tax correctly for the first 200,000 on agnostic comp', async () => {
+      const first200 = await computeTax(200000, brackets);
+      expect(first200.taxedIncome).toBe(200000);
+      expect(first200.tax).toBeCloseTo(14000);
+      expect(first200.currentBandIndex).toBe(0);
       expect(first200.currentBracket).toBe('f');
     });
 
