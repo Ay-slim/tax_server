@@ -33,5 +33,13 @@ export interface Summary extends Document {
   readonly total_taxed_income: number;
   readonly total_deducted_tax: number;
   readonly current_tax_index: number;
-  readonly pension_contribution_percent: number;
+}
+
+export interface UserCountry extends Document {
+  readonly user_id: string;
+  readonly country_id: string;
+  readonly contributiojns: {
+    name: string;
+    percentage: number;
+  }[];
 }
