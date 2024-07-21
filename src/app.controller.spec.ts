@@ -21,6 +21,8 @@ import { UserService } from './user/service';
 import { Request } from 'express';
 import { Types } from 'mongoose';
 import { ConfigModule } from '@nestjs/config';
+import Nigeria from '../src/utils/deduction_logic_by_country/nigeria';
+import { FilingCategories } from './utils/types/taxDeduction';
 
 const brackets = [
   {
@@ -129,16 +131,51 @@ describe('AppController', () => {
     });
 
     it('should calculate tax correctly for 5,000,000', async () => {
-      // const first900 = await taxComp(5000000, 0, 0, brackets);
-      // expect(first900.grossTaxedIncome).toBe(900000);
-      // expect(first900.newlyDeductedTax).toBe(87000);
-      // expect(first900.newBandIndex).toBe(2);
-      // expect(first900.currentBracket).toBe('d');
       const testUpperLimit = await taxComp(5000000, 0, 0, brackets);
       expect(testUpperLimit.grossTaxedIncome).toBe(5000000);
       expect(testUpperLimit.newlyDeductedTax).toBe(992000);
       expect(testUpperLimit.newBandIndex).toBe(5);
       expect(testUpperLimit.currentBracket).toBe('a');
+    });
+
+    it('should calculate tax correctly for 5,000,000 on agnostic comp', async () => {
+      const testUpperLimit = await computeTax(5000000, brackets);
+      expect(testUpperLimit.taxedIncome).toBe(5000000);
+      expect(testUpperLimit.tax).toBe(992000);
+      expect(testUpperLimit.currentBandIndex).toBe(5);
+      expect(testUpperLimit.currentBracket).toBe('a');
+    });
+  });
+
+  describe('Deduction logic by country', () => {
+    const contributionRules = [
+      {
+        name: 'pension',
+        percentage: 8,
+      },
+      {
+        name: 'nhf',
+        percentage: 2.5,
+      },
+    ];
+    const filings = [
+      {
+        amount: 4000000,
+        category: 'regular_income' as FilingCategories,
+        description: 'Annual salary',
+        contributions: ['pension'],
+      },
+    ];
+    it('Should test with pwc example (4,000,000 income)', () => {
+      const { taxes, taxableIncome, deductions } = Nigeria({
+        contributionRules,
+        filings,
+        brackets,
+      });
+      // console.log(taxes, taxableIncome, deductions, 'NIGERIA RESULTTTT');
+      expect(taxes.reduce((acc, curr) => curr.amount + acc, 0)).toBe(464240);
+      expect(taxableIncome).toBe(2744000);
+      expect(deductions.length).toBe(2);
     });
   });
 
