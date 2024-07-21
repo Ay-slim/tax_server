@@ -1,6 +1,11 @@
+export type FilingCategories =
+  | 'regular_income'
+  | 'capital_gain'
+  | 'investment_income';
+
 export type Filings = {
   amount: number;
-  category: 'regular_income' | 'capital_gain' | 'investment_income';
+  category: FilingCategories;
   description: string;
   contributions: string[];
 };
