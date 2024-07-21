@@ -1,9 +1,6 @@
 import { TaxBrackets } from './types/taxDeduction';
 
-export const computeTax = async (
-  newIncome: number,
-  brackets: TaxBrackets[],
-) => {
+export const computeTax = (newIncome: number, brackets: TaxBrackets[]) => {
   let virtualIncomeTaxed = 0;
   let virtualTaxAmount = 0;
   let newBandIndex = 0;
