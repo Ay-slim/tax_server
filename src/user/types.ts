@@ -4,7 +4,10 @@ export class CreateUserDto {
   readonly country_id: string;
   readonly password: string;
   readonly year: number;
-  readonly pension_contribution_percent: number;
+  readonly contributions: {
+    name: string;
+    percentage: number;
+  }[];
 }
 
 export class UserDashboardDto {
