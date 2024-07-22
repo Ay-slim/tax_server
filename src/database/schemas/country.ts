@@ -11,6 +11,7 @@ export const Country = new mongoose.Schema(
         limit: Number,
       },
     ],
+    possible_contributions: [String],
   },
   { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } },
 );
