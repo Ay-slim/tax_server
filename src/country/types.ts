@@ -6,6 +6,7 @@ export class CreateCountryDto {
     rate: number;
     limit: number;
   }[];
+  readonly possible_contributions: string[];
 }
 
 export class DeleteCountryDto {

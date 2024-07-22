@@ -14,6 +14,7 @@ export interface Country extends Document {
     rate: number;
     limit: number;
   }[];
+  readonly possible_contributions: string[];
 }
 
 export interface Filing extends Document {
@@ -38,7 +39,7 @@ export interface Summary extends Document {
 export interface UserCountry extends Document {
   readonly user_id: string;
   readonly country_id: string;
-  readonly contributiojns: {
+  readonly contributions: {
     name: string;
     percentage: number;
   }[];
