@@ -62,11 +62,11 @@ describe('AppController', () => {
   let countryController: CountryController;
   let userController: UserController;
   let summaryController: SummaryController;
-  let deductionController: FilingController;
+  let filingController: FilingController;
   let countryId: string;
   let userId: string;
   let summaryIds: Array<string>;
-  const deductionIds: Array<string> = [];
+  const filingIds: Array<string> = [];
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
@@ -95,7 +95,7 @@ describe('AppController', () => {
     countryController = app.get<CountryController>(CountryController);
     userController = app.get<UserController>(UserController);
     summaryController = app.get<SummaryController>(SummaryController);
-    deductionController = app.get<FilingController>(FilingController);
+    filingController = app.get<FilingController>(FilingController);
   });
 
   describe('root', () => {
@@ -185,12 +185,22 @@ describe('AppController', () => {
         name: 'Test Country',
         currency: 'Test currency',
         tax_brackets: brackets,
+        possible_contributions: ['pension', 'nhf'],
       });
       countryId = newCountry.id;
       expect(typeof countryId).toBe('string');
       expect(newCountry.name).toBe('Test Country');
       expect(newCountry.tax_brackets[0].bracket).toBe('f');
+      expect(newCountry.possible_contributions).toContain('pension');
     });
+  });
+
+  it('Should test countries list fetch', async () => {
+    const countries = await userController.fetchCountries();
+    expect(countries.length).toBeGreaterThanOrEqual(1);
+    expect(
+      countries.filter((count) => count.name === 'Test Country').length,
+    ).toBeGreaterThanOrEqual(1);
   });
 
   describe('User module test', () => {
@@ -201,10 +211,19 @@ describe('AppController', () => {
         country_id: countryId,
         year: 2024,
         password: 'test-password',
-        pension_contribution_percent: 8,
+        contributions: [
+          {
+            name: 'pension',
+            percentage: 8,
+          },
+        ],
       });
       userId = newUser._id;
       const summaries = await summaryController.findByUserAndCountry({
+        user_id: userId,
+        country_id: countryId,
+      });
+      const contributions = await userController.fetchUserContributions({
         user_id: userId,
         country_id: countryId,
       });
@@ -212,7 +231,9 @@ describe('AppController', () => {
       expect(newUser.name).toBe('Test User');
       expect(newUser.email).toBe('test@user.com');
       expect(summaries[0]?.total_taxed_income).toBe(0);
-      expect(summaries[0]?.pension_contribution_percent).toBe(8);
+      expect(contributions.length).toBe(1);
+      expect(contributions[0].name).toBe('pension');
+      expect(contributions[0].percentage).toBe(8);
     });
     it('Should test a successful user login', async () => {
       const loggedInUser = await userController.login({
@@ -246,30 +267,30 @@ describe('AppController', () => {
   });
 
   describe('Filing module tests', () => {
-    it('Should create a deduction and update the corresponding summary document', async () => {
-      const filing24 = await deductionController.create({
+    it('Should create a tax filing and update the corresponding summary document', async () => {
+      const filing24 = await filingController.create({
         user_id: userId,
-        description: 'Test deduction',
+        description: 'Test filing',
         income: 200000,
         date: '05-09-2024',
         country_id: countryId,
       });
-      deductionIds.push(filing24._id);
+      filingIds.push(filing24._id);
 
-      const filing23 = await deductionController.create({
+      const filing23 = await filingController.create({
         user_id: userId,
-        description: 'Test deduction 2',
+        description: 'Test filing 2',
         income: 200000,
         date: '05-09-2023',
         country_id: countryId,
       });
-      deductionIds.push(filing23._id);
+      filingIds.push(filing23._id);
       const summaries = await summaryController.findByUserAndCountry({
         user_id: userId,
         country_id: countryId,
       });
       summaryIds = summaries.map((summary) => summary._id);
-      expect(filing24.description).toBe('Test deduction');
+      expect(filing24.description).toBe('Test filing');
       expect(filing24.date.getFullYear()).toBe(2024);
       expect(summaries[0]?.total_taxed_income).toBe(filing24.income);
       expect(filing24.tax).toBeCloseTo(14000);
@@ -293,6 +314,10 @@ describe('AppController', () => {
     await countryController.deleteById({ _id: countryId });
     await userController.deleteById({ _id: userId });
     await summaryController.deleteMany(summaryIds);
-    await deductionController.deleteMany(deductionIds);
+    await filingController.deleteMany(filingIds);
+    await userController.deleteUserContributions({
+      user_id: userId,
+      country_id: countryId,
+    });
   });
 });
