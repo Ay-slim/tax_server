@@ -1,8 +1,15 @@
 import { Model, PipelineStage, Types } from 'mongoose';
 import { Injectable, Inject } from '@nestjs/common';
 import { CreateUserDto, LoginUserDto, UserDashboardDto } from './types';
-import { User, Summary, Filing, Country } from '../database/schema.types';
+import {
+  User,
+  Summary,
+  Filing,
+  Country,
+  UserCountry,
+} from '../database/schema.types';
 import * as bcrypt from 'bcrypt';
+import { Contributions } from 'src/utils/types/taxDeduction';
 
 @Injectable()
 export class UserService {
@@ -15,18 +22,14 @@ export class UserService {
     private filingModel: Model<Filing>,
     @Inject('COUNTRY_MODEL')
     private countryModel: Model<Country>,
+    @Inject('USER_COUNTRY_MODEL')
+    private userCountryModel: Model<UserCountry>,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
-      const {
-        name,
-        email,
-        country_id,
-        year,
-        password,
-        pension_contribution_percent,
-      } = createUserDto;
+      const { name, email, country_id, year, password, contributions } =
+        createUserDto;
       const hashed_password = await bcrypt.hash(password, 10);
       const createdUser = await this.userModel.create({
         name,
@@ -40,7 +43,11 @@ export class UserService {
         total_taxed_income: 0,
         total_deducted_tax: 0,
         current_tax_index: 0,
-        pension_contribution_percent,
+      });
+      await this.userCountryModel.create({
+        user_id: createdUser._id,
+        country_id,
+        contributions,
       });
       return createdUser;
     } catch (err) {
@@ -77,7 +84,21 @@ export class UserService {
   }
 
   async fetchCountries(): Promise<Country[]> {
-    return this.countryModel.find({}, '_id, name');
+    return this.countryModel.find({}, '_id name possible_contributions');
+  }
+
+  async fetchUserContributionsRates(
+    user_id: string,
+    country_id: string,
+  ): Promise<Contributions[]> {
+    const rawContributions = await this.userCountryModel.findOne(
+      {
+        user_id,
+        country_id,
+      },
+      'contributions',
+    );
+    return rawContributions.contributions;
   }
 
   async dashboard(dashboardDto: UserDashboardDto) {

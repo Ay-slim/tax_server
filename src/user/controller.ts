@@ -16,6 +16,7 @@ import {
   idArgDto,
 } from './types';
 import { User } from 'src/database/schema.types';
+import { Contributions } from 'src/utils/types/taxDeduction';
 
 @Controller('user')
 export class UserController {
@@ -32,13 +33,24 @@ export class UserController {
   }
 
   @Get('countries')
-  async fetch_countries() {
-    return this.userService.fetchCountries();
+  async fetchCountries() {
+    const serviceResponse = await this.userService.fetchCountries();
+    // console.log(serviceResponse);
+    return serviceResponse;
   }
 
   @Get()
   async findAll(): Promise<User[]> {
     return this.userService.findAll();
+  }
+
+  @Get()
+  async fetchUserContributions(userContribDto: {
+    user_id: string;
+    country_id: string;
+  }): Promise<Contributions[]> {
+    const { user_id, country_id } = userContribDto;
+    return this.userService.fetchUserContributionsRates(user_id, country_id);
   }
 
   @Get('dashboard')
