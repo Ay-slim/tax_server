@@ -101,6 +101,16 @@ export class UserService {
     return rawContributions.contributions;
   }
 
+  async deleteUserContributionsRates(
+    user_id: string,
+    country_id: string,
+  ): Promise<void> {
+    await this.userCountryModel.deleteOne({
+      user_id,
+      country_id,
+    });
+  }
+
   async dashboard(dashboardDto: UserDashboardDto) {
     const { user_id, year } = dashboardDto;
     //const user = await this.userModel.findById(user_id);

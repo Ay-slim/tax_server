@@ -44,13 +44,22 @@ export class UserController {
     return this.userService.findAll();
   }
 
-  @Get()
+  @Get('userContrib')
   async fetchUserContributions(userContribDto: {
     user_id: string;
     country_id: string;
   }): Promise<Contributions[]> {
     const { user_id, country_id } = userContribDto;
     return this.userService.fetchUserContributionsRates(user_id, country_id);
+  }
+
+  @Delete('userContrib')
+  async deleteUserContributions(userContribDto: {
+    user_id: string;
+    country_id: string;
+  }): Promise<void> {
+    const { user_id, country_id } = userContribDto;
+    return this.userService.deleteUserContributionsRates(user_id, country_id);
   }
 
   @Get('dashboard')
