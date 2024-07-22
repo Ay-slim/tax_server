@@ -26,3 +26,8 @@ export type TaxBrackets = {
   limit: number;
   rate: number;
 };
+
+export type Contributions = {
+  name: string;
+  percentage: number;
+};
