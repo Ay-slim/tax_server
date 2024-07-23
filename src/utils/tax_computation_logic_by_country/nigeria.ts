@@ -1,11 +1,5 @@
-import { Filings, TaxBrackets } from '../types/taxDeduction';
+import { AmReasonDescr, Filings, TaxBrackets } from '../types/taxDeduction';
 import { computeTax } from '../agnosticTaxComputation';
-
-type AmReasonDescr = {
-  amount: number;
-  reason: string;
-  description: string;
-};
 
 const nigeria = ({
   contributionRules,
@@ -23,6 +17,7 @@ const nigeria = ({
   const taxes: AmReasonDescr[] = [];
   let capital_gains_income = 0;
   let gross_income_less_deductions = 0;
+  let gross_income_with_deductions = 0;
   const contributionsMap: {
     [key: string]: AmReasonDescr;
   } = {};
@@ -63,10 +58,11 @@ const nigeria = ({
       } else {
         gross_income_less_deductions += filing.amount;
       }
+      gross_income_with_deductions += filing.amount;
     }
   });
   const consolidated_relief =
-    Math.max(200000, 0.01 * gross_income_less_deductions) +
+    Math.max(200000, 0.01 * gross_income_with_deductions) +
     0.2 * gross_income_less_deductions;
   deductions.push({
     amount: consolidated_relief,
@@ -76,24 +72,33 @@ const nigeria = ({
   });
   const final_amount_to_tax =
     gross_income_less_deductions - consolidated_relief;
-  const { tax, currentBandIndex, currentBracket } = computeTax(
-    final_amount_to_tax,
-    brackets,
-  );
-  taxes.push({
-    amount: tax,
-    reason: 'Personal income tax',
-    description: 'Tax on remaining taxable income after reliefs and deductions',
-  });
+  let currentBandIdx = 0;
+  let currentTaxBracket = brackets[0]?.bracket;
+  if (final_amount_to_tax > 0) {
+    const { tax, currentBandIndex, currentBracket } = computeTax(
+      final_amount_to_tax,
+      brackets,
+    );
+    currentBandIdx = currentBandIndex;
+    currentTaxBracket = currentBracket;
+    taxes.push({
+      amount: tax,
+      reason: 'Personal income tax',
+      description:
+        'Tax on remaining taxable income after reliefs and deductions',
+    });
+  }
   const contributionDeductions = Object.values(contributionsMap).filter(
     (cMap) => cMap.amount > 0,
   );
+  const taxableIncome = final_amount_to_tax + capital_gains_income;
   return {
+    totalIncome: filings.reduce((acc, curr) => acc + curr.amount, 0),
     taxes,
-    taxableIncome: final_amount_to_tax + capital_gains_income,
+    taxableIncome: taxableIncome > 0 ? taxableIncome : 0,
     deductions: [...deductions, ...contributionDeductions],
-    currentBandIndex,
-    currentBracket,
+    currentBandIndex: currentBandIdx,
+    currentBracket: currentTaxBracket,
   };
 };
 
