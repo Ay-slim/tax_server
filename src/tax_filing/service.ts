@@ -1,8 +1,16 @@
 import mongoose, { Model } from 'mongoose';
 import { Injectable, Inject } from '@nestjs/common';
 import { CreateFilingDto } from './types';
-import { Country, Filing, Summary } from '../database/schema.types';
-import { taxComp } from '../utils/taxComputation';
+import {
+  Country,
+  Filing,
+  Summary,
+  UserCountry,
+} from '../database/schema.types';
+// import { taxComp } from '../utils/taxComputation';
+import taxCompLogic from '../utils/tax_computation_logic_by_country';
+import { AmReasonDescr } from 'src/utils/types/taxDeduction';
+// import nigeria from '../utils/tax_computation_logic_by_country/nigeria';
 
 @Injectable()
 export class FilingService {
@@ -13,35 +21,80 @@ export class FilingService {
     private SummaryModel: Model<Summary>,
     @Inject('COUNTRY_MODEL')
     private CountryModel: Model<Country>,
+    @Inject('USER_COUNTRY_MODEL')
+    private UserCountryModel: Model<UserCountry>,
   ) {}
 
   async create(createFilingDto: CreateFilingDto): Promise<Filing> {
-    const { user_id, description, income, date, country_id } = createFilingDto;
-    const year = new Date(date).getFullYear();
-    const summary = await this.SummaryModel.findOne({
+    const {
       user_id,
+      description,
+      amount,
+      date,
       country_id,
-      year,
-    });
+      country,
+      category,
+      contributions,
+    } = createFilingDto;
+    const year = new Date(date).getFullYear();
     // console.log(summary, 'SUMMARYYY');
-    const country = await this.CountryModel.findById(country_id);
-    // console.log(country, 'COUNTRYYYYY');
-    const tax = await taxComp(
-      income,
-      summary?.total_taxed_income || 0,
-      summary?.current_tax_index || 0,
-      country.tax_brackets,
+    const { tax_brackets } = await this.CountryModel.findById(
+      country_id,
+      'tax_brackets',
     );
-    // console.log(date, 'INCOMEEE IN SER IDEE');
+    // console.log(country, 'COUNTRYYYYY');
+    const { contributions: contribution_rules } =
+      await this.UserCountryModel.findOne(
+        {
+          user_id,
+          country_id,
+        },
+        'contributions',
+      );
+    const filings = await this.FilingModel.find(
+      {
+        user_id,
+        country_id,
+      },
+      'amount category description contributions',
+    );
+    const {
+      totalIncome,
+      taxes,
+      taxableIncome,
+      deductions,
+      currentBandIndex,
+      currentBracket,
+    }: {
+      totalIncome: number;
+      taxes: AmReasonDescr[];
+      taxableIncome: number;
+      deductions: AmReasonDescr[];
+      currentBandIndex: number;
+      currentBracket: string;
+    } = taxCompLogic[country.toLowerCase()]({
+      contributionRules: contribution_rules,
+      filings: [
+        ...JSON.parse(JSON.stringify(filings)),
+        {
+          amount,
+          category,
+          description,
+          contributions,
+        },
+      ],
+      brackets: tax_brackets,
+    });
     const filing = await this.FilingModel.create({
       user_id,
       description,
-      income,
+      amount,
       country_id,
-      tax: tax.newlyDeductedTax,
       date: new Date(date),
+      contributions,
+      category,
     });
-    // console.log(deduction, 'DEDUCTION IN SERVICE FILEE');
+
     await this.SummaryModel.findOneAndUpdate(
       {
         user_id,
@@ -49,11 +102,13 @@ export class FilingService {
         year,
       },
       {
-        total_taxed_income: (summary?.total_taxed_income || 0) + income,
-        total_deducted_tax:
-          (summary?.total_deducted_tax || 0) + tax.newlyDeductedTax,
-        current_tax_index: tax.newBandIndex,
-        current_tax_bracket: tax.currentBracket,
+        total_income: totalIncome,
+        total_taxed_income: taxableIncome,
+        total_deducted_tax: taxes.reduce((acc, curr) => acc + curr.amount, 0),
+        current_tax_index: currentBandIndex,
+        current_tax_bracket: currentBracket,
+        taxes,
+        deductions,
       },
       { upsert: true },
     );
