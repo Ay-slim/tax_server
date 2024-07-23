@@ -31,3 +31,9 @@ export type Contributions = {
   name: string;
   percentage: number;
 };
+
+export type AmReasonDescr = {
+  amount: number;
+  reason: string;
+  description: string;
+};
