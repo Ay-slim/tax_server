@@ -27,7 +27,6 @@ export const computeTax = (newIncome: number, brackets: TaxBrackets[]) => {
     }
   }
   return {
-    taxedIncome: virtualIncomeTaxed,
     tax: virtualTaxAmount,
     currentBracket: brackets[newBandIndex].bracket,
     currentBandIndex: newBandIndex,
