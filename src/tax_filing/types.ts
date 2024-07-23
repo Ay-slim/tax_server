@@ -1,9 +1,12 @@
 export class CreateFilingDto {
   readonly user_id: string;
   readonly description: string;
-  readonly income: number;
+  readonly amount: number;
   readonly date: string;
   readonly country_id: string;
+  readonly country: string;
+  readonly category: string;
+  readonly contributions: string[];
 }
 
 export class idArgDto {
