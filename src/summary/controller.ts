@@ -20,7 +20,7 @@ export class SummaryController {
   @Get()
   async findByUserAndCountry(
     @Param() findByUcDto: UserAndCountryDto,
-  ): Promise<Summary[]> {
+  ): Promise<Summary> {
     return this.summaryService.findByUserAndCountry(
       findByUcDto.user_id,
       findByUcDto.country_id,

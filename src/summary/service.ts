@@ -19,8 +19,8 @@ export class SummaryService {
     return this.SummaryModel.find().exec();
   }
 
-  async findByUserAndCountry(user_id: string, country_id): Promise<Summary[]> {
-    return this.SummaryModel.find({ user_id, country_id });
+  async findByUserAndCountry(user_id: string, country_id): Promise<Summary> {
+    return this.SummaryModel.findOne({ user_id, country_id });
   }
 
   async deleteById(_id: string): Promise<void> {
