@@ -45,18 +45,18 @@ const nigeria = ({
       capital_gains_income += filing.amount;
       return;
     } else if (filing.category === 'regular_income') {
+      gross_income_less_deductions += filing.amount;
       if (filing.contributions.length) {
+        // If there are contributions, deduct the contributions from the amount to tax
         filing.contributions.forEach((contribution) => {
           const contributionRule = contributionRules.filter(
             (cR) => cR.name === contribution,
           );
-          contributionsMap[contribution].amount +=
+          const contributionAmount =
             (filing.amount * contributionRule[0].percentage) / 100;
-          gross_income_less_deductions +=
-            filing.amount * (1 - contributionRule[0].percentage / 100);
+          contributionsMap[contribution].amount += contributionAmount;
+          gross_income_less_deductions -= contributionAmount;
         });
-      } else {
-        gross_income_less_deductions += filing.amount;
       }
       gross_income_with_deductions += filing.amount;
     }
