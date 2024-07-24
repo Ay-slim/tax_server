@@ -24,6 +24,7 @@ export class SummaryController {
     return this.summaryService.findByUserAndCountry(
       findByUcDto.user_id,
       findByUcDto.country_id,
+      findByUcDto.year,
     );
   }
 
