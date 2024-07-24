@@ -9,7 +9,6 @@ import {
   UserCountry,
 } from '../database/schema.types';
 import * as bcrypt from 'bcrypt';
-import { Contributions } from 'src/utils/types/taxDeduction';
 
 @Injectable()
 export class UserService {
@@ -90,7 +89,7 @@ export class UserService {
   async fetchUserContributionsRates(
     user_id: string,
     country_id: string,
-  ): Promise<Contributions[]> {
+  ): Promise<string[]> {
     const rawContributions = await this.userCountryModel.findOne(
       {
         user_id,
@@ -98,7 +97,10 @@ export class UserService {
       },
       'contributions',
     );
-    return rawContributions.contributions;
+    const contributionArray = rawContributions.contributions.map(
+      (contrib) => contrib.name,
+    );
+    return contributionArray;
   }
 
   async deleteUserContributionsRates(
