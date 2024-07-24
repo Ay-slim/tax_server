@@ -4,7 +4,6 @@ export class CreateFilingDto {
   readonly amount: number;
   readonly date: string;
   readonly country_id: string;
-  readonly country: string;
   readonly category: string;
   readonly contributions: string[];
 }

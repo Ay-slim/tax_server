@@ -32,15 +32,14 @@ export class FilingService {
       amount,
       date,
       country_id,
-      country,
       category,
       contributions,
     } = createFilingDto;
     const year = new Date(date).getFullYear();
     // console.log(summary, 'SUMMARYYY');
-    const { tax_brackets } = await this.CountryModel.findById(
+    const { tax_brackets, name: country } = await this.CountryModel.findById(
       country_id,
-      'tax_brackets',
+      'tax_brackets name',
     );
     // console.log(country, 'COUNTRYYYYY');
     const { contributions: contribution_rules } =
