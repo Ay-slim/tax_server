@@ -145,6 +145,9 @@ export class UserService {
           total_deducted_tax: 1,
           current_tax_index: 1,
           current_tax_bracket: 1,
+          total_income: 1,
+          taxes: 1,
+          deductions: 1,
         },
       },
     ];
